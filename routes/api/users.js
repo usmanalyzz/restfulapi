@@ -36,6 +36,22 @@ router.post("/register", async function (req, res) {
   return res.send(user);
 });
 
+// Login User
+router.post("/login", async (req, res) => {
+  try {
+    let user = await User.findOne({ email: req.body.email });
+    if (!user) return res.status(400).send("User not registered");
+
+    let isValid = await bcrypt.compare(req.body.password, user.password);
+    if (!isValid) return res.status(401).send("Invalid Password");
+
+    res.send("Login successful");
+  } catch (error) {
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+
 //! Deleting the User
 router.delete("/delete/:id", async (req, res) => {
   let user = await User.findByIdAndDelete(req.params.id);

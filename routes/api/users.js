@@ -2,6 +2,8 @@ var express = require("express");
 var router = express.Router();
 let { User } = require("../../models/user");
 var bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const config = require("config");
 
 //? List of all users
 router.get("/list-users", async (req, res) => {
@@ -45,12 +47,15 @@ router.post("/login", async (req, res) => {
     let isValid = await bcrypt.compare(req.body.password, user.password);
     if (!isValid) return res.status(401).send("Invalid Password");
 
-    res.send("Login successful");
+    let token = jwt.sign(
+      { _id: user._id, firstname: user.firstname },
+      config.get("jwtPrivateKey")
+    );
+    res.send(token);
   } catch (error) {
     res.status(500).send("Internal Server Error");
   }
 });
-
 
 //! Deleting the User
 router.delete("/delete/:id", async (req, res) => {

@@ -1,3 +1,4 @@
 {
-  "db": "mongodb://localhost/users-crud"
+  "db": "mongodb://localhost/users-crud",
+  "jwtPrivateKey": "jwtPrivateKey"
 }

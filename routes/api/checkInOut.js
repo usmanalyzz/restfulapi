@@ -3,6 +3,7 @@ const router = express.Router();
 const { User } = require("../../models/user");
 const { CheckInOut } = require("../../models/checkInOut");
 const auth = require("../../middlewares/auth");
+const admin = require("../../middlewares/admin");
 
 // Check-In Route
 router.post("/check-in", auth, async (req, res) => {
@@ -82,6 +83,23 @@ router.get("/userCheckInOutDetails", auth, async (req, res) => {
     return res
       .status(500)
       .send("An error occurred while retrieving user check-in/out details");
+  }
+});
+
+router.get("/allUsersCheckInOutDetails", [auth, admin], async (req, res) => {
+  try {
+    const checkInOuts = await CheckInOut.find()
+      .sort({ date: -1 })
+      .populate("userId");
+
+    return res.send(checkInOuts);
+  } catch (error) {
+    console.log("Error retrieving all users' check-in/out details: ", error);
+    return res
+      .status(500)
+      .send(
+        "An error occurred while retrieving all users' check-in/out details:"
+      );
   }
 });
 

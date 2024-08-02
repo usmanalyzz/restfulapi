@@ -33,6 +33,7 @@ router.post("/register", async function (req, res) {
     email: req.body.email,
     password: req.body.password,
     jobtitle: req.body.jobtitle,
+    role: req.body.role || "user",
   });
   await user.save();
   return res.send(user);

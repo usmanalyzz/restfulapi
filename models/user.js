@@ -1,5 +1,6 @@
 var mongoose = require("mongoose");
 var bcrypt = require("bcryptjs");
+const { type } = require("@hapi/joi/lib/extend");
 
 var userSchema = mongoose.Schema(
   {
@@ -8,6 +9,10 @@ var userSchema = mongoose.Schema(
     email: String,
     password: String,
     jobtitle: String,
+    role: {
+      type: String,
+      default: "user",
+    },
     isActive: {
       type: Boolean,
       default: true,

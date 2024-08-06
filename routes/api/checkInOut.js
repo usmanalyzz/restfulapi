@@ -86,6 +86,7 @@ router.get("/userCheckInOutDetails", auth, async (req, res) => {
   }
 });
 
+//? Admin Only
 router.get("/allUsersCheckInOutDetails", [auth, admin], async (req, res) => {
   try {
     const checkInOuts = await CheckInOut.find()
@@ -100,6 +101,47 @@ router.get("/allUsersCheckInOutDetails", [auth, admin], async (req, res) => {
       .send(
         "An error occurred while retrieving all users' check-in/out details:"
       );
+  }
+});
+
+//* Time Duration of each worker
+
+router.get("/userTotalWorkingTime/:id", auth, async (req, res) => {
+  console.log("Route /userTotalWorkingTime/:id called");
+  try {
+    const userId = req.params.id;
+    console.log("User ID:", userId);
+
+    const checkInOuts = await CheckInOut.find({ userId });
+    console.log("CheckInOuts:", checkInOuts);
+
+    const totalTime = {};
+
+    checkInOuts.forEach((checkInOut) => {
+      const date = checkInOut.date.toISOString().split("T")[0];
+      const duration = checkInOut.calculateDuration();
+
+      if (!totalTime[date]) {
+        totalTime[date] = 0;
+      }
+      totalTime[date] += duration;
+    });
+
+    const formattedTime = {};
+    for (const date in totalTime) {
+      const totalMinutes = totalTime[date] * 1440;
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = Math.round(totalMinutes % 60);
+      formattedTime[date] = `${hours}h ${minutes}m`;
+    }
+
+    console.log("Total Time:", formattedTime);
+    return res.send(formattedTime);
+  } catch (error) {
+    console.error("Error calculating total working time:", error);
+    return res
+      .status(500)
+      .send("An error occurred while calculating total working time");
   }
 });
 

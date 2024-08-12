@@ -14,6 +14,10 @@ var checkInOutSchema = new mongoose.Schema(
     checkOutTime: {
       type: Date,
     },
+    breakTime: {
+      type: Number,
+      default: 0,
+    },
     date: {
       type: Date,
       default: Date.now,
@@ -29,7 +33,11 @@ checkInOutSchema.methods.calculateDuration = function () {
   if (!this.checkOutTime) {
     return 0;
   }
-  return (this.checkOutTime - this.checkInTime) / (1000 * 60 * 60);
+
+  const totalDuration =
+    (this.checkOutTime - this.checkInTime) / (1000 * 60 * 60);
+  const breakDuration = this.breakTime / 60;
+  return totalDuration - breakDuration;
 };
 
 var CheckInOut = mongoose.model("CheckInOut", checkInOutSchema);

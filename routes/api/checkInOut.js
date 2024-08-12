@@ -4,15 +4,13 @@ const { User } = require("../../models/user");
 const { CheckInOut } = require("../../models/checkInOut");
 const auth = require("../../middlewares/auth");
 const admin = require("../../middlewares/admin");
+const fetchActiveCheckIn = require("../../middlewares/fetchActiveCheckIn");
+const checkNoActiveCheckIn = require("../../middlewares/checkNoActiveCheckIn");
 
 // Check-In Route
-router.post("/check-in", auth, async (req, res) => {
+router.post("/check-in", [auth, checkNoActiveCheckIn], async (req, res) => {
   try {
     const user = req.user;
-    if (!user) {
-      console.log("Invalid User ID");
-      return res.status(400).send("Invalid User ID");
-    }
 
     let checkInOut = new CheckInOut({
       userId: user._id,
@@ -32,25 +30,28 @@ router.post("/check-in", auth, async (req, res) => {
   }
 });
 
-// Check-Out Route
-router.post("/check-out", auth, async (req, res) => {
+//? Break Time Route
+router.post("/add-break/:id", [auth, fetchActiveCheckIn], async (req, res) => {
   try {
-    const user = req.user;
-    console.log("User ID for checkout:", user._id);
+    const checkInOut = req.checkInOut;
 
-    // Find the latest check-in record without a check-out time
-    const checkInOut = await CheckInOut.findOne({
-      userId: user._id,
-      checkOutTime: null,
-    }).sort({ checkInTime: -1 });
-
-    if (!checkInOut) {
-      console.log("No active check-in found for user ID:", user._id);
-      return res.status(400).send("No active check-in for the current user ID");
+    if (typeof req.body.breakTime !== "number" || req.body.breakTime <= 0) {
+      return res.status(400).send("InValid break time provided");
     }
 
-    // Log the check-in record details before updating
-    console.log("Active check-in record found:", checkInOut);
+    checkInOut.breakTime += req.body.breakTime;
+    await checkInOut.save();
+
+    return res.send(checkInOut);
+  } catch (error) {
+    return res.status(500).send("An error occurred while adding break time");
+  }
+});
+
+// Check-Out Route
+router.post("/check-out", [auth, fetchActiveCheckIn], async (req, res) => {
+  try {
+    const checkInOut = req.checkInOut;
 
     checkInOut.checkOutTime = new Date();
     await checkInOut.save();

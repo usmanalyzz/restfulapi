@@ -16,7 +16,7 @@ async function auth(req, res, next) {
     }
   } catch (error) {
     return res.status(401).send("Invalid token");
-  }
+  } 
   next();
 }
 
